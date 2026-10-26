@@ -1,0 +1,59 @@
+defmodule TodoListWeb.Router do
+  use TodoListWeb, :router
+
+  pipeline :browser do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_live_flash
+    plug :put_root_layout, html: {TodoListWeb.Layouts, :root}
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+  end
+
+  pipeline :api do
+    plug :accepts, ["json"]
+  end
+
+  scope "/", TodoListWeb do
+    pipe_through :browser
+
+    get "/", PageController, :home
+    live "/groups", GroupLive.Index, :index
+    live "/groups/new", GroupLive.Form, :new
+    live "/groups/:id", GroupLive.Show, :show
+    live "/groups/:id/edit", GroupLive.Form, :edit
+
+    live "/tasks", TaskLive.Index, :index
+    live "/tasks/new", TaskLive.Form, :new
+    live "/tasks/:id", TaskLive.Show, :show
+    live "/tasks/:id/edit", TaskLive.Form, :edit
+
+    live "/todos", TodListLive.Index, :index
+    live "/todos/new", TodListLive.Form, :new
+    live "/todos/:id", TodListLive.Show, :show
+    live "/todos/:id/edit", TodListLive.Form, :edit
+
+  end
+
+  # Other scopes may use custom stacks.
+  # scope "/api", TodoListWeb do
+  #   pipe_through :api
+  # end
+
+  # Enable LiveDashboard and Swoosh mailbox preview in development
+  if Application.compile_env(:todo_list, :dev_routes) do
+    # If you want to use the LiveDashboard in production, you should put
+    # it behind authentication and allow only admins to access it.
+    # If your application does not have an admins-only section yet,
+    # you can use Plug.BasicAuth to set up some basic authentication
+    # as long as you are also using SSL (which you should anyway).
+    import Phoenix.LiveDashboard.Router
+
+    scope "/dev" do
+      pipe_through :browser
+
+      live_dashboard "/dashboard", metrics: TodoListWeb.Telemetry
+      forward "/mailbox", Plug.Swoosh.MailboxPreview
+    end
+  end
+end
